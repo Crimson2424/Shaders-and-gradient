@@ -7,10 +7,20 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 
 import { palettes, sinPalettes } from "./palettes";
+import GUI from 'lil-gui'; 
 
-let paletteKey = "black"
-let palette = palettes[paletteKey]
-let sinPalette = sinPalettes[paletteKey]
+const gui = new GUI();
+
+let paletteKey = ""
+
+let paletteObject = {
+  paletteKey: "black"
+}
+
+let palette = palettes[paletteObject.paletteKey]
+let sinPalette = sinPalettes[paletteObject.paletteKey]
+
+
 
 // setting up
 let rendering = new Rendering(document.querySelector("#canvas"), palette)
@@ -23,22 +33,24 @@ let uTime = { value: 0 };
 // Init
 
 let radius = 2/3
-let grid = 20
-let cellSize = 1.66
-let totalGridSize = grid * cellSize
+let gridObject = {
+  grid : 20,
+  cellSize : 1.66,
+}
+let totalGridSize = gridObject.grid * gridObject.cellSize
 
 let geometry = new THREE.CylinderGeometry(radius, radius, 1, 8, 2)
 let instancedGeometry = (new THREE.InstancedBufferGeometry()).copy(geometry)
-let instanceCount = grid * grid
+let instanceCount = gridObject.grid * gridObject.grid
 instancedGeometry.instanceCount = instanceCount
 
 let pos = new Float32Array(instanceCount * 2)
 
 let i = 0
-for(let y = 0; y < grid; y++)
-for(let x = 0; x < grid; x++){
-    pos[i] = x * cellSize - totalGridSize/2 + cellSize/2
-    pos[i + 1] = y * cellSize - totalGridSize/2 + cellSize/2
+for(let y = 0; y < gridObject.grid; y++)
+for(let x = 0; x < gridObject.grid; x++){
+    pos[i] = x * gridObject.cellSize - totalGridSize/2 + gridObject.cellSize/2
+    pos[i + 1] = y * gridObject.cellSize - totalGridSize/2 + gridObject.cellSize/2
     //Explanation:- here we are multiplying cellSize with our indexes because we are taking cellSize in account as well and to properly center our structure we subtracted half of the total grid size and then added the offset of the cellsize that was half of the cellsize
     i +=2
 }
@@ -128,6 +140,20 @@ let material = new THREE.ShaderMaterial({
     uPalleteOffset: {value: sinPalette.offset},
   }
 })
+
+//GUI
+gui.add( paletteObject, 'paletteKey', ["black", "pink", "aquamarine", "blue", "darkblue", "grey", "white", "orange"] ).onChange(()=>{
+  palette = palettes[paletteObject.paletteKey]
+  sinPalette = sinPalettes[paletteObject.paletteKey]
+  material.uniforms.uBackground.value = palette.BG
+  material.uniforms.uPallete0.value = sinPalette.c0
+  material.uniforms.uPallete1.value = sinPalette.c1
+  material.uniforms.uPallete2.value = sinPalette.c2
+  material.uniforms.uPallete3.value = sinPalette.c3
+  material.uniforms.uPalleteOffset.value = sinPalette.offset
+
+  rendering.updatePalette(palette)
+}).name('Color Palette')
 
 let mesh = new THREE.Mesh(instancedGeometry, material)
 mesh.scale.y = 10

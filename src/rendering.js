@@ -8,7 +8,6 @@ export class Rendering {
     let hex = "#"+ palette.highlight.getHexString()
     document.documentElement.style.setProperty("--text", hex);
 
-
     this.vp = {
       canvas: {
         width: canvas.offsetWidth,
@@ -53,7 +52,16 @@ export class Rendering {
     this.disposed = false;
 
     this.addEvents(); 
+
   }
+
+  updatePalette(newPalette) {
+    let hex = "#"+ newPalette.highlight.getHexString()
+    document.documentElement.style.setProperty("--text", hex);
+    this.scene.background = newPalette.BG.clone()
+  }
+
+ 
   addEvents() {
     window.addEventListener("resize", this.onResize);
   }
